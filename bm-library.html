@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BM 라이브러리 — AI 파운더스</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0f0f13;
+    --surface: #1a1a22;
+    --surface2: #22222e;
+    --border: #2e2e3e;
+    --accent: #7c6af7;
+    --accent2: #a78bfa;
+    --text: #f0f0f8;
+    --text2: #9090a8;
+    --text3: #5a5a72;
+    --green: #34d399;
+    --yellow: #fbbf24;
+    --pink: #f472b6;
+    --blue: #60a5fa;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, 'Apple SD Gothic Neo', BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    padding: 48px 24px 32px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #13101f 0%, var(--bg) 100%);
+  }
+  .badge {
+    display: inline-block;
+    background: rgba(124,106,247,0.15);
+    color: var(--accent2);
+    border: 1px solid rgba(124,106,247,0.3);
+    border-radius: 100px;
+    padding: 4px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
+  }
+  header h1 {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #fff 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  header p {
+    color: var(--text2);
+    font-size: 15px;
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* MAIN LAYOUT */
+  main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    margin-top: 48px;
+  }
+
+  /* QUIZ */
+  .quiz-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 16px;
+  }
+  .quiz-box h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .quiz-box .sub { color: var(--text2); font-size: 14px; margin-bottom: 28px; }
+
+  .steps { display: flex; gap: 8px; margin-bottom: 28px; }
+  .step-dot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: var(--text3);
+    transition: all 0.3s;
+  }
+  .step-dot.active { border-color: var(--accent); color: var(--accent); background: rgba(124,106,247,0.1); }
+  .step-dot.done { border-color: var(--green); color: var(--green); background: rgba(52,211,153,0.1); }
+
+  .question { font-size: 18px; font-weight: 700; margin-bottom: 20px; line-height: 1.4; }
+
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media(max-width:600px) { .options { grid-template-columns: 1fr; } }
+  .option-btn {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+    line-height: 1.4;
+  }
+  .option-btn:hover { border-color: var(--accent); background: rgba(124,106,247,0.08); }
+  .option-btn.selected { border-color: var(--accent); background: rgba(124,106,247,0.12); color: var(--accent2); }
+
+  /* RESULT */
+  .result-box {
+    display: none;
+    background: linear-gradient(135deg, rgba(124,106,247,0.12) 0%, rgba(167,139,250,0.06) 100%);
+    border: 1.5px solid rgba(124,106,247,0.35);
+    border-radius: 20px;
+    padding: 32px;
+    margin-top: 16px;
+  }
+  .result-box.show { display: block; }
+  .result-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: var(--accent2); text-transform: uppercase; margin-bottom: 8px; }
+  .result-bm { font-size: 28px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .result-desc { color: var(--text2); font-size: 14px; line-height: 1.7; margin-bottom: 20px; }
+  .result-price {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(52,211,153,0.1);
+    border: 1px solid rgba(52,211,153,0.25);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 13px; font-weight: 600; color: var(--green);
+  }
+  .result-steps { margin-top: 20px; }
+  .result-steps .step-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: var(--text3); text-transform: uppercase; margin-bottom: 10px; }
+  .step-flow {
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  }
+  .step-chip {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 5px 12px;
+    font-size: 13px; color: var(--text2);
+  }
+  .step-arrow { color: var(--text3); font-size: 13px; }
+  .reset-btn {
+    margin-top: 24px;
+    background: transparent;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 18px;
+    color: var(--text2);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .reset-btn:hover { border-color: var(--text2); color: var(--text); }
+
+  /* FILTER */
+  .filter-row {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;
+  }
+  .filter-btn {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 100px;
+    padding: 7px 16px;
+    font-size: 13px; font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover { border-color: var(--accent); color: var(--accent2); }
+  .filter-btn.active { background: rgba(124,106,247,0.12); border-color: var(--accent); color: var(--accent2); }
+
+  /* CARDS */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(124,106,247,0.12); }
+  .card.highlighted { border-color: var(--accent); background: rgba(124,106,247,0.06); }
+  .card-num {
+    font-size: 11px; font-weight: 700; color: var(--text3);
+    letter-spacing: 0.08em; margin-bottom: 8px;
+  }
+  .card-title { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+  .card-desc { font-size: 13px; color: var(--text2); line-height: 1.5; margin-bottom: 14px; }
+  .card-tag {
+    display: inline-block;
+    font-size: 11px; font-weight: 600;
+    padding: 3px 10px; border-radius: 6px;
+    margin-right: 6px; margin-bottom: 6px;
+  }
+  .tag-b2c { background: rgba(96,165,250,0.12); color: var(--blue); border: 1px solid rgba(96,165,250,0.2); }
+  .tag-b2b { background: rgba(251,191,36,0.12); color: var(--yellow); border: 1px solid rgba(251,191,36,0.2); }
+  .tag-platform { background: rgba(244,114,182,0.12); color: var(--pink); border: 1px solid rgba(244,114,182,0.2); }
+  .tag-content { background: rgba(52,211,153,0.12); color: var(--green); border: 1px solid rgba(52,211,153,0.2); }
+
+  /* CARD EXPANDED */
+  .card-detail {
+    display: none;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .card.open .card-detail { display: block; }
+  .detail-section { margin-bottom: 14px; }
+  .detail-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: var(--text3); text-transform: uppercase; margin-bottom: 6px; }
+  .detail-val { font-size: 13px; color: var(--text2); line-height: 1.6; }
+  .detail-case {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .case-chip {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 7px; padding: 4px 10px;
+    font-size: 12px; color: var(--text2);
+  }
+  .price-chip {
+    background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.2);
+    border-radius: 7px; padding: 4px 10px;
+    font-size: 12px; color: var(--green); font-weight: 600;
+  }
+
+  .card-chevron {
+    position: absolute; top: 22px; right: 22px;
+    color: var(--text3); font-size: 14px; transition: transform 0.3s;
+  }
+  .card.open .card-chevron { transform: rotate(180deg); }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 32px;
+    color: var(--text3);
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">AI 파운더스 1기 · Week 1</div>
+  <h1>💰 BM 라이브러리</h1>
+  <p>아이디어는 있는데 "어떻게 돈을 버나?"가 막히면 여기서 시작하세요.<br>내 서비스에 맞는 BM을 찾고, 가격까지 잡는 게 목표예요.</p>
+</header>
+
+<main>
+
+  <!-- QUIZ SECTION -->
+  <div class="section-title">🎯 내 BM 찾기</div>
+  <div class="quiz-box">
+    <h2>3가지 질문으로 내 BM 찾기</h2>
+    <p class="sub">답변하면 내 서비스에 맞는 BM과 가격 가이드를 바로 알려드려요.</p>
+
+    <div class="steps">
+      <div class="step-dot active" id="dot1">1</div>
+      <div class="step-dot" id="dot2">2</div>
+      <div class="step-dot" id="dot3">3</div>
+    </div>
+
+    <div id="quiz-step1">
+      <div class="question">Q1. 유저가 내 서비스를 얼마나 자주 쓸까요?</div>
+      <div class="options">
+        <button class="option-btn" onclick="answer(1,'daily')">📅 매일 / 매주<br><span style="font-size:12px;color:#9090a8;">습관처럼 반복해서 쓰는 서비스</span></button>
+        <button class="option-btn" onclick="answer(1,'occasional')">⚡ 필요할 때만<br><span style="font-size:12px;color:#9090a8;">가끔 한 번씩 쓰는 서비스</span></button>
+        <button class="option-btn" onclick="answer(1,'traffic')">📣 트래픽이 핵심<br><span style="font-size:12px;color:#9090a8;">많은 사람이 보는 게 중요한 서비스</span></button>
+        <button class="option-btn" onclick="answer(1,'connect')">🤝 사람/거래를 연결<br><span style="font-size:12px;color:#9090a8;">판매자-구매자를 이어주는 서비스</span></button>
+      </div>
+    </div>
+
+    <div id="quiz-step2" style="display:none;">
+      <div class="question">Q2. 내 주요 고객은 누구인가요?</div>
+      <div class="options">
+        <button class="option-btn" onclick="answer(2,'b2c')">👤 개인 (B2C)<br><span style="font-size:12px;color:#9090a8;">일반 소비자가 직접 쓰는 서비스</span></button>
+        <button class="option-btn" onclick="answer(2,'b2b')">🏢 기업 / 비즈니스 (B2B)<br><span style="font-size:12px;color:#9090a8;">회사나 팀이 업무에 쓰는 서비스</span></button>
+      </div>
+    </div>
+
+    <div id="quiz-step3" style="display:none;">
+      <div class="question">Q3. 유저가 직접 돈을 낼 의향이 있을까요?</div>
+      <div class="options">
+        <button class="option-btn" onclick="answer(3,'pay')">💳 네, 가치 있으면 낼 것 같아요</button>
+        <button class="option-btn" onclick="answer(3,'free')">🆓 공짜여야 쓸 것 같아요</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="result-box" id="result-box">
+    <div class="result-label">추천 BM</div>
+    <div class="result-bm" id="result-bm-name"></div>
+    <div class="result-desc" id="result-bm-desc"></div>
+    <div class="result-price" id="result-bm-price"></div>
+    <div class="result-steps">
+      <div class="step-label">수익 수집 단계</div>
+      <div class="step-flow" id="result-bm-steps"></div>
+    </div>
+    <button class="reset-btn" onclick="resetQuiz()">↩ 다시 찾기</button>
+  </div>
+
+  <!-- ALL BM CARDS -->
+  <div class="section-title" style="margin-top:56px;">📚 전체 BM 20가지</div>
+
+  <div class="filter-row">
+    <button class="filter-btn active" onclick="filterCards('all', this)">전체</button>
+    <button class="filter-btn" onclick="filterCards('b2c', this)">B2C</button>
+    <button class="filter-btn" onclick="filterCards('b2b', this)">B2B</button>
+    <button class="filter-btn" onclick="filterCards('platform', this)">플랫폼</button>
+    <button class="filter-btn" onclick="filterCards('content', this)">콘텐츠</button>
+  </div>
+
+  <div class="cards-grid" id="cards-grid"></div>
+
+</main>
+
+<footer>AI 파운더스 1기 교육 자료 · BM 라이브러리</footer>
+
+<script>
+const BMS = [
+  {
+    num:"01", title:"구독형 (월정액)", desc:"매달 일정 금액 받고 서비스 제공",
+    tags:["b2c"], cases:["클로드","노션","넷플릭스","밀리의서재"],
+    student:"심리코칭 앱, 건강관리, AI 투자 도구",
+    price:"월 9,900 ~ 29,000원",
+    steps:["회원가입","카드 등록","매달 자동결제"],
+    full:"반복 사용되는 서비스에 최적. 예측 가능한 수익이 생기고, 유저가 습관처럼 쓸수록 이탈이 줄어요."
+  },
+  {
+    num:"02", title:"단건 결제", desc:"쓸 때마다 1회 결제",
+    tags:["b2c"], cases:["앱스토어 유료 앱","토스"],
+    student:"수학 문제은행, 심리검사 도구, 면접비 솔루션",
+    price:"건당 990 ~ 9,900원",
+    steps:["서비스 이용","결제창","단건 승인"],
+    full:"한 번 쓰고 끝나는 서비스에 적합. 진입 장벽이 낮아 첫 결제를 유도하기 쉬워요."
+  },
+  {
+    num:"03", title:"프리미엄 (Freemium)", desc:"기본은 무료, 고급 기능은 유료",
+    tags:["b2c"], cases:["줌","스포티파이","카카오톡"],
+    student:"업무자동화 툴, AI 협업 플랫폼",
+    price:"무료 + 월 19,000원~",
+    steps:["무료 가입","사용","유료 기능 필요 순간","결제 전환"],
+    full:"유저를 많이 모은 뒤 전환률로 수익화. 무료 플랜이 충분히 좋아야 사람이 모이고, 유료 기능이 명확해야 전환이 돼요."
+  },
+  {
+    num:"04", title:"광고형", desc:"유저는 무료, 광고주에게 수익",
+    tags:["content"], cases:["네이버","유튜브","카카오"],
+    student:"트래픽 많은 콘텐츠 플랫폼 (초기엔 비추)",
+    price:"트래픽 기반 (CPM/CPC)",
+    steps:["트래픽 확보","광고주 계약 또는 애드센스 연동"],
+    full:"대규모 트래픽이 있어야 의미있는 수익이 나요. MVP 단계에서는 비추천. 콘텐츠가 핵심 자산인 서비스에 적합해요."
+  },
+  {
+    num:"05", title:"중개/마켓플레이스", desc:"거래 발생 시 % 수수료",
+    tags:["platform"], cases:["당근마켓","에어비앤비","크몽"],
+    student:"박람회 예약시스템, 인재 채용 서비스",
+    price:"거래액의 5 ~ 15%",
+    steps:["판매자-구매자 등록","거래 발생","수수료 자동 정산"],
+    full:"양면 시장(판매자+구매자)을 모두 확보해야 해서 초기가 어렵지만, 성장하면 강력한 네트워크 효과가 생겨요."
+  },
+  {
+    num:"06", title:"SaaS (B2B 구독)", desc:"기업 대상 소프트웨어 월 구독",
+    tags:["b2b"], cases:["슬랙","잔디","채널톡"],
+    student:"VC 업무자동화 툴, HR 플랫폼",
+    price:"월 30,000 ~ 100,000원 (팀 단위 과금 가능)",
+    steps:["기업 데모","무료 체험","유료 전환","월 청구"],
+    full:"B2C보다 단가가 높고 해지율이 낮아요. 영업 사이클이 길지만, 한 번 계약하면 오래 유지돼요."
+  },
+  {
+    num:"07", title:"콘텐츠 구독", desc:"전문 콘텐츠(뉴스레터/리포트)에 구독료",
+    tags:["content","b2c"], cases:["아웃스탠딩","어피티","퍼블리"],
+    student:"AI 투자 인사이트 뉴스레터",
+    price:"월 9,900 ~ 19,900원",
+    steps:["무료 콘텐츠","팬 확보","유료 구독 전환"],
+    full:"전문성이 핵심. 무료 콘텐츠로 신뢰를 쌓고 유료로 전환하는 구조예요. 뉴스레터로 시작하기 좋아요."
+  },
+  {
+    num:"08", title:"유료 커뮤니티/멤버십", desc:"커뮤니티 입장료 또는 멤버십비",
+    tags:["b2c","platform"], cases:["각종 유료 오픈채팅","클럽하우스"],
+    student:"창업가 커뮤니티, 투자 정보 모임",
+    price:"월 10,000 ~ 30,000원",
+    steps:["가입 신청","심사","월 회비 결제"],
+    full:"진입 장벽(심사)이 커뮤니티 품질을 유지해줘요. 구성원들끼리의 네트워크 가치가 곧 서비스 가치예요."
+  },
+  {
+    num:"09", title:"기다리면 무료 (웹툰형)", desc:"일정 시간 기다리면 무료, 빠르게 보면 유료",
+    tags:["content","b2c"], cases:["레진코믹스","카카오페이지","네이버웹툰"],
+    student:"콘텐츠/교육 서비스",
+    price:"코인/쿠폰 판매",
+    steps:["무료 공개","미리보기 유혹","코인 구매"],
+    full:"FOMO(못 보면 손해) 심리를 이용한 구조. 콘텐츠 업데이트 주기가 빠를수록 효과적이에요."
+  },
+  {
+    num:"10", title:"협찬/스폰서십", desc:"브랜드가 콘텐츠 제작비 지원",
+    tags:["content"], cases:["유튜브 채널 협찬","인플루언서"],
+    student:"헬스/라이프스타일 콘텐츠",
+    price:"협찬 단가는 팔로워·조회수 기준",
+    steps:["팔로워 확보","브랜드 접촉","협찬 계약","콘텐츠 제작"],
+    full:"팔로워가 없으면 시작이 어렵지만, 일정 규모가 되면 인바운드 협찬이 들어와요. 초기엔 먼저 연락하는 게 일반적."
+  },
+  {
+    num:"11", title:"제휴 마케팅 (Affiliate)", desc:"추천으로 판매 발생 시 커미션",
+    tags:["b2c"], cases:["쿠팡파트너스","애드픽"],
+    student:"마케팅 도구, 상세페이지 제작 서비스",
+    price:"판매액의 2 ~ 15%",
+    steps:["링크 발급","유저 클릭 후 구매","자동 정산"],
+    full:"자체 상품 없이 시작 가능. 트래픽이나 팔로워가 있을 때 부수입으로 좋지만, 단독 메인 BM으로는 약해요."
+  },
+  {
+    num:"12", title:"B2G (정부/공공 납품)", desc:"정부·지자체 대상 솔루션 납품",
+    tags:["b2b"], cases:["각종 공공 SI 기업"],
+    student:"한의원 업무자동화, 교육 솔루션",
+    price:"프로젝트 단위 계약",
+    steps:["공고 확인","제안서 제출","계약","납품 후 정산"],
+    full:"안정적이지만 사이클이 길고 절차가 복잡해요. 공공 레퍼런스가 생기면 민간 영업에도 유리해요."
+  },
+  {
+    num:"13", title:"라이선스 판매", desc:"기술/콘텐츠 사용권 판매",
+    tags:["b2b"], cases:["폰트 사이트","IP 라이선스"],
+    student:"심리검사 도구, 수학 문제은행",
+    price:"연간 또는 건별 라이선스료",
+    steps:["콘텐츠 제작","라이선스 계약","사용료 수취"],
+    full:"한 번 만들면 여러 곳에 팔 수 있어 확장성이 좋아요. 특히 전문 콘텐츠나 고유한 도구에 적합해요."
+  },
+  {
+    num:"14", title:"데이터 판매", desc:"축적된 데이터를 기업에 판매",
+    tags:["b2b"], cases:["금융 데이터 업체","의료 데이터"],
+    student:"AI 투자 도구, 채용 플랫폼",
+    price:"건별 또는 정기 구독형",
+    steps:["데이터 수집","정제","B2B 계약","정기 납품"],
+    full:"초기에는 데이터를 모으는 게 먼저. 충분한 양과 품질이 확보되면 의외로 강력한 수익원이 돼요."
+  },
+  {
+    num:"15", title:"커머스 (직접 판매)", desc:"제품을 직접 만들어 판매",
+    tags:["b2c"], cases:["마켓컬리","무신사","29cm"],
+    student:"헬스/식습관 관련 실물 상품",
+    price:"단가 × 마진율",
+    steps:["제품 기획","쇼핑몰 구축","결제 연동","배송"],
+    full:"재고, 물류, CS까지 챙겨야 해서 디지털 서비스보다 복잡해요. 하지만 단가가 높고 충성 고객이 생기면 강력해요."
+  },
+  {
+    num:"16", title:"화이트라벨/OEM", desc:"내가 만든 솔루션을 다른 회사 브랜드로 납품",
+    tags:["b2b"], cases:["B2B SaaS 다수"],
+    student:"HR 채용 솔루션, 심리검사 툴",
+    price:"납품가 + 유지보수료",
+    steps:["솔루션 개발","기업 영업","커스터마이징","납품 계약"],
+    full:"내 브랜드 없이 B2B 매출을 만들 수 있는 방법. 한 곳에서 성공하면 레퍼런스로 다음 영업이 쉬워져요."
+  },
+  {
+    num:"17", title:"이벤트/교육", desc:"유료 행사 참가비 또는 수강료",
+    tags:["b2c"], cases:["퇴근후클래스","각종 세미나"],
+    student:"박람회 예약시스템 운영사",
+    price:"회당 30,000 ~ 300,000원",
+    steps:["이벤트 기획","티켓 판매","현장 운영"],
+    full:"온라인 + 오프라인 모두 가능. 커뮤니티와 결합하면 시너지가 커요. 반복 이벤트가 쌓이면 브랜드가 돼요."
+  },
+  {
+    num:"18", title:"미디어커머스", desc:"콘텐츠로 트래픽 확보 후 직접 판매",
+    tags:["content","b2c"], cases:["딩고","29CM","무신사"],
+    student:"건강/라이프스타일 콘텐츠 기반 쇼핑몰",
+    price:"판매 마진",
+    steps:["콘텐츠 제작","팔로워 확보","자체 상품 출시","판매"],
+    full:"콘텐츠 → 신뢰 → 구매로 이어지는 구조. 팬이 있으면 커머스 전환율이 일반 쇼핑몰보다 훨씬 높아요."
+  },
+  {
+    num:"19", title:"성과 기반 (CPA/CPS)", desc:"실제 성과(가입, 구매)당 수수료",
+    tags:["b2b"], cases:["리워드 앱","퍼포먼스 마케팅"],
+    student:"마케팅 도구, 광고 자동화",
+    price:"가입당 500~5,000원 / 구매당 %",
+    steps:["광고주 계약","캠페인 집행","성과 측정","정산"],
+    full:"광고주 입장에서 ROI가 명확해 계약이 쉬워요. 단, 성과를 증명할 수 있는 트래킹 시스템이 필요해요."
+  },
+  {
+    num:"20", title:"크레딧/토큰 경제", desc:"자체 크레딧 충전 후 사용",
+    tags:["b2c","platform"], cases:["카카오페이지 코인","크몽 크레딧"],
+    student:"AI 도구, 콘텐츠 플랫폼",
+    price:"충전 단위로 설계",
+    steps:["크레딧 시스템 설계","충전 유도","소진","재충전"],
+    full:"유저가 한 번 충전하면 이탈하기 어려운 심리가 생겨요. 단가를 낮게 설정해 충전 허들을 낮추는 게 핵심이에요."
+  },
+];
+
+let answers = {};
+
+function answer(step, val) {
+  answers[step] = val;
+  document.querySelectorAll('#quiz-step'+step+' .option-btn').forEach(b => b.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+
+  setTimeout(() => {
+    document.getElementById('dot'+step).classList.remove('active');
+    document.getElementById('dot'+step).classList.add('done');
+
+    if (step === 1 && (val === 'traffic' || val === 'connect')) {
+      showResult(val);
+      return;
+    }
+    if (step === 1) {
+      document.getElementById('quiz-step1').style.display = 'none';
+      document.getElementById('quiz-step2').style.display = 'block';
+      document.getElementById('dot2').classList.add('active');
+    } else if (step === 2) {
+      if (val === 'b2b') { showResult('b2b'); return; }
+      document.getElementById('quiz-step2').style.display = 'none';
+      document.getElementById('quiz-step3').style.display = 'block';
+      document.getElementById('dot3').classList.add('active');
+    } else if (step === 3) {
+      showResult(answers[1] + '_' + val);
+    }
+  }, 200);
+}
+
+const RESULTS = {
+  traffic: { bm:"광고형", desc:"많은 사람이 보는 게 핵심인 서비스에요. 초기엔 트래픽 확보에 집중하고, 어느 정도 규모가 되면 광고 수익을 붙이는 방식이에요. 단, MVP 단계에선 수익이 거의 없으니 다른 BM도 같이 고려해보세요.", price:"CPM/CPC 기반, 초기 수익 적음", steps:["콘텐츠 제작","트래픽 확보","광고 연동 (애드센스 등)"] },
+  connect: { bm:"마켓플레이스 / 중개형", desc:"판매자와 구매자를 연결하고 거래 수수료를 받는 구조예요. 양쪽 모두 확보해야 하는 닭-달걀 문제가 있지만, 한 번 규모가 되면 강력한 네트워크 효과가 생겨요.", price:"거래액의 5 ~ 15%", steps:["판매자 먼저 모집","구매자 유입","거래 발생 시 수수료"] },
+  b2b: { bm:"SaaS (B2B 구독)", desc:"기업을 대상으로 하는 소프트웨어 서비스예요. B2C보다 단가가 높고 해지율이 낮아요. 영업 사이클이 길지만 한 번 계약하면 안정적인 수익이 생겨요.", price:"월 30,000 ~ 100,000원 (팀 단위)", steps:["데모 미팅","무료 체험 2주","유료 전환","월 청구"] },
+  daily_pay: { bm:"구독형 (월정액)", desc:"매일/매주 쓰는 서비스라면 구독형이 딱이에요. 유저가 습관처럼 쓸수록 이탈이 줄고, 예측 가능한 수익이 생겨요. 처음엔 낮은 가격으로 시작해서 올리는 전략을 써보세요.", price:"월 9,900 ~ 29,000원", steps:["회원가입","카드 등록","매달 자동결제"] },
+  daily_free: { bm:"프리미엄 (Freemium)", desc:"공짜여야 쓴다면 프리미엄 전략이에요. 무료 플랜으로 유저를 많이 모은 뒤, 고급 기능을 유료로 제공해 전환시키는 구조예요. 무료 플랜이 충분히 좋아야 사람이 모여요.", price:"무료 + 월 19,000원~", steps:["무료 가입","기본 기능 사용","고급 기능 필요 → 결제"] },
+  occasional_pay: { bm:"단건 결제", desc:"필요할 때만 쓰는 서비스라면 단건 결제가 자연스러워요. 진입 장벽이 낮아서 첫 결제를 유도하기 쉽고, 만족하면 반복 구매로 이어져요.", price:"건당 990 ~ 9,900원", steps:["서비스 이용","결제창 진입","단건 승인 완료"] },
+  occasional_free: { bm:"광고형 or 제휴 마케팅", desc:"가끔 쓰고 공짜여야 한다면 광고나 제휴 수익이 현실적이에요. 단, 트래픽이 있어야 의미있는 수익이 나오니까 먼저 유저를 모으는 게 우선이에요.", price:"트래픽/추천 기반", steps:["유저 모집","트래픽 확보","광고/제휴 수익 연동"] },
+};
+
+function showResult(key) {
+  const r = RESULTS[key] || RESULTS['daily_pay'];
+  document.getElementById('result-bm-name').textContent = r.bm;
+  document.getElementById('result-bm-desc').textContent = r.desc;
+  document.getElementById('result-bm-price').textContent = '💰 추천 가격: ' + r.price;
+  const stepsEl = document.getElementById('result-bm-steps');
+  stepsEl.innerHTML = r.steps.map((s,i) => `<span class="step-chip">${s}</span>${i<r.steps.length-1?'<span class="step-arrow">→</span>':''}`).join('');
+  document.getElementById('result-box').classList.add('show');
+  document.getElementById('result-box').scrollIntoView({behavior:'smooth', block:'nearest'});
+
+  // highlight matching cards
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('highlighted'));
+}
+
+function resetQuiz() {
+  answers = {};
+  ['quiz-step1','quiz-step2','quiz-step3'].forEach((id,i) => {
+    document.getElementById(id).style.display = i===0?'block':'none';
+    document.querySelectorAll('#'+id+' .option-btn').forEach(b => b.classList.remove('selected'));
+  });
+  [1,2,3].forEach(i => {
+    const d = document.getElementById('dot'+i);
+    d.classList.remove('done','active');
+    if(i===1) d.classList.add('active');
+  });
+  document.getElementById('result-box').classList.remove('show');
+}
+
+// RENDER CARDS
+function renderCards(filter) {
+  const grid = document.getElementById('cards-grid');
+  const filtered = filter==='all' ? BMS : BMS.filter(b => b.tags.includes(filter));
+  grid.innerHTML = filtered.map(b => `
+    <div class="card" onclick="toggleCard(this)">
+      <span class="card-chevron">▾</span>
+      <div class="card-num">BM ${b.num}</div>
+      <div class="card-title">${b.title}</div>
+      <div class="card-desc">${b.desc}</div>
+      <div>
+        ${b.tags.map(t => `<span class="card-tag tag-${t}">${{b2c:'B2C',b2b:'B2B',platform:'플랫폼',content:'콘텐츠'}[t]}</span>`).join('')}
+      </div>
+      <div class="card-detail">
+        <div class="detail-section">
+          <div class="detail-label">한국 사례</div>
+          <div class="detail-case">${b.cases.map(c=>`<span class="case-chip">${c}</span>`).join('')}</div>
+        </div>
+        <div class="detail-section">
+          <div class="detail-label">수강생 서비스 예시</div>
+          <div class="detail-val">${b.student}</div>
+        </div>
+        <div class="detail-section">
+          <div class="detail-label">추천 가격</div>
+          <span class="price-chip">💰 ${b.price}</span>
+        </div>
+        <div class="detail-section">
+          <div class="detail-label">수익 수집 단계</div>
+          <div class="step-flow">${b.steps.map((s,i)=>`<span class="step-chip">${s}</span>${i<b.steps.length-1?'<span class="step-arrow">→</span>':''}`).join('')}</div>
+        </div>
+        <div class="detail-section" style="margin-bottom:0">
+          <div class="detail-label">포인트</div>
+          <div class="detail-val">${b.full}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleCard(el) {
+  el.classList.toggle('open');
+}
+
+function filterCards(filter, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCards(filter);
+}
+
+renderCards('all');
+</script>
+</body>
+</html>
